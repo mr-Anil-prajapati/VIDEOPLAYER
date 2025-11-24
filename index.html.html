@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Local YouTube</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #111; color: #fff; }
+    .container { display: flex; }
+    .player { flex: 3; padding: 20px; }
+    .player video { width: 100%; height: auto; border-radius: 8px; }
+    .controls { margin-top: 10px; }
+    button { padding: 8px 16px; font-size: 16px; cursor: pointer; border: none; border-radius: 6px; background: #ff0000; color: white; }
+    .sidebar { flex: 1; background: #222; overflow-y: auto; padding: 10px; }
+    .video-item { margin-bottom: 10px; cursor: pointer; }
+    .video-item video { width: 100%; border-radius: 6px; }
+    .video-item span { display: block; margin-top: 5px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Main Video Player -->
+  <div class="player">
+    <video id="mainPlayer" controls autoplay>
+      <source src="videos/1.mp4" type="video/mp4">
+      Your browser does not support HTML5 video.
+    </video>
+    <div class="controls">
+      <button id="nextBtn">Next ▶</button>
+    </div>
+  </div>
+
+  <!-- Recommended Videos -->
+  <div class="sidebar" id="sidebar">
+    <!-- Videos will be added dynamically -->
+  </div>
+</div>
+
+<script>
+  const totalVideos = 26; // total number of videos
+  const sidebar = document.getElementById("sidebar");
+  const mainPlayer = document.getElementById("mainPlayer");
+  let currentVideo = 1; // start with video 1
+
+  // Load recommended videos
+  for (let i = 1; i <= totalVideos; i++) {
+    let item = document.createElement("div");
+    item.className = "video-item";
+
+    let vid = document.createElement("video");
+    vid.src = `videos/${i}.mp4`;
+    vid.muted = true;   // mute preview
+    vid.loop = true;
+    
+    // Preview on hover
+    item.addEventListener("mouseenter", () => vid.play());
+    item.addEventListener("mouseleave", () => vid.pause());
+
+    // Play on click
+    item.addEventListener("click", () => {
+      currentVideo = i;
+      mainPlayer.src = `videos/${i}.mp4`;
+      mainPlayer.play();
+    });
+
+    let label = document.createElement("span");
+    label.textContent = `Video ${i}`;
+
+    item.appendChild(vid);
+    item.appendChild(label);
+    sidebar.appendChild(item);
+  }
+
+  // Next button functionality
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    currentVideo++;
+    if (currentVideo > totalVideos) currentVideo = 1; // loop back to first video
+    mainPlayer.src = `videos/${currentVideo}.mp4`;
+    mainPlayer.play();
+  });
+</script>
+
+</body>
+</html>
