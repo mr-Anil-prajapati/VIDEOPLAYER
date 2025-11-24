@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Local YouTube (No Server)</title>
+<style>
+  body { font-family: Arial; margin: 0; background: #111; color: #fff; }
+  .container { display: flex; height: 100vh; }
+  .player { flex: 3; padding: 20px; display: flex; flex-direction: column; }
+  video { width: 100%; border-radius: 8px; }
+  button { padding: 8px 16px; border: none; border-radius: 6px; background: #ff0000; color: #fff; cursor: pointer; margin-right: 10px; }
+  .sidebar { flex: 1; background: #222; overflow-y: auto; padding: 10px; }
+  .search-bar { width: 100%; padding: 8px; border: none; border-radius: 6px; background: #333; color: #fff; margin-bottom: 10px; }
+  .video-item { margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 6px; transition: 0.2s; }
+  .video-item:hover { background: #333; }
+  .video-item.active { border: 2px solid #ff0000; box-shadow: 0 0 8px #ff0000; }
+  .video-item span { display: block; text-align: center; margin-top: 4px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="player">
+    <video id="mainPlayer" controls></video>
+    <div class="controls">
+      <button id="nextBtn">Next ▶</button>
+      <input type="file" id="folderPicker" webkitdirectory directory multiple accept="video/mp4" style="display:none;">
+      <button id="loadBtn">📁 Load Folder</button>
+    </div>
+  </div>
+  <div class="sidebar">
+    <input type="text" id="search" class="search-bar" placeholder="Search videos...">
+    <div id="sidebar"></div>
+  </div>
+</div>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const mainPlayer = document.getElementById("mainPlayer");
+const search = document.getElementById("search");
+const folderPicker = document.getElementById("folderPicker");
+
+let files = [];
+let currentIndex = 0;
+
+// Load folder button
+document.getElementById("loadBtn").addEventListener("click", () => folderPicker.click());
+
+folderPicker.addEventListener("change", (e) => {
+  files = Array.from(e.target.files).filter(f => f.name.endsWith(".mp4"));
+  if (files.length === 0) return alert("No MP4 files found!");
+  loadSidebar();
+  playVideo(0);
+});
+
+// Create sidebar dynamically
+function loadSidebar() {
+  sidebar.innerHTML = "";
+  files.forEach((file, i) => {
+    const item = document.createElement("div");
+    item.className = "video-item";
+
+    const vid = document.createElement("video");
+    vid.src = URL.createObjectURL(file);
+    vid.muted = true;
+    vid.loop = true;
+
+    item.addEventListener("mouseenter", () => vid.play());
+    item.addEventListener("mouseleave", () => vid.pause());
+    item.addEventListener("click", () => playVideo(i));
+
+    const label = document.createElement("span");
+    label.textContent = file.name.replace(".mp4", "").replace(/_/g, " ");
+
+    item.appendChild(vid);
+    item.appendChild(label);
+    sidebar.appendChild(item);
+  });
+  highlightActive(0);
+}
+
+function playVideo(i) {
+  currentIndex = i;
+  mainPlayer.src = URL.createObjectURL(files[i]);
+  mainPlayer.play();
+  highlightActive(i);
+}
+
+function highlightActive(i) {
+  document.querySelectorAll(".video-item").forEach((el, idx) => {
+    el.classList.toggle("active", idx === i);
+  });
+}
+
+// Next button
+document.getElementById("nextBtn").addEventListener("click", () => {
+  currentIndex = (currentIndex + 1) % files.length;
+  playVideo(currentIndex);
+});
+
+// Autoplay next when video ends
+mainPlayer.addEventListener("ended", () => {
+  currentIndex = (currentIndex + 1) % files.length;
+  playVideo(currentIndex);
+});
+
+// Search filter
+search.addEventListener("input", () => {
+  const term = search.value.toLowerCase();
+  document.querySelectorAll(".video-item").forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(term) ? "" : "none";
+  });
+});
+</script>
+
+</body>
+</html>
